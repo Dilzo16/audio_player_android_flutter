@@ -1,6 +1,6 @@
 # audio_player_android_flutter
 
-A new Flutter project.
+this is a simple flutter music player application to play music from device storage with notifications.
 
 ## Getting Started
 
