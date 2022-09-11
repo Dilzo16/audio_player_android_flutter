@@ -24,7 +24,22 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: "Music player test",
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark(),
+      theme: ThemeData(
+        // Define the default brightness and colors.
+        brightness: Brightness.light,
+        primaryColor: Color.fromARGB(255, 27, 175, 228),
+
+        // Define the default font family.
+        fontFamily: 'Georgia',
+
+        // Define the default `TextTheme`. Use this to specify the default
+        // text styling for headlines, titles, bodies of text, and more.
+        textTheme: const TextTheme(
+          //headline1: TextStyle(fontSize: 72.0, fontWeight: FontWeight.bold),
+          //headline6: TextStyle(fontSize: 36.0, fontStyle: FontStyle.italic),
+          bodyText2: TextStyle(fontSize: 14.0, fontFamily: 'Hind'),
+        ),
+      ),
       home: AllSongs(),
     );
   }
@@ -108,9 +123,9 @@ class _AllSongsState extends State<AllSongs> {
                       context,
                       MaterialPageRoute(
                           builder: ((context) => NowPlaying(
-                                songModel: item.data![index],
-                                audioPlayer: _audioPlayer,
-                              ))));
+                              index: index,
+                              audioPlayer: _audioPlayer,
+                              item: item))));
                 },
               ),
               itemCount: item.data!.length,

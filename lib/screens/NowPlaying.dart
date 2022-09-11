@@ -6,11 +6,16 @@ import 'package:just_audio_background/just_audio_background.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
 class NowPlaying extends StatefulWidget {
-  const NowPlaying(
-      {Key? key, required this.songModel, required this.audioPlayer})
+  NowPlaying(
+      {Key? key,
+      required this.index,
+      required this.audioPlayer,
+      required this.item})
       : super(key: key);
-  final SongModel songModel;
+  int index;
   final AudioPlayer audioPlayer;
+  final AsyncSnapshot<List<SongModel>> item;
+
   @override
   State<NowPlaying> createState() => _NowPlayingState();
 }
@@ -19,12 +24,18 @@ class _NowPlayingState extends State<NowPlaying> {
   Duration _duration = Duration();
   Duration _position = Duration();
   bool _isPlaying = false;
+  late SongModel songModel;
+
+  setSong() {
+    songModel = widget.item.data![widget.index];
+    playSong();
+  }
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    playSong();
+    setSong();
 
     widget.audioPlayer.durationStream.listen((d) {
       setState(() {
@@ -34,20 +45,37 @@ class _NowPlayingState extends State<NowPlaying> {
     widget.audioPlayer.positionStream.listen((p) {
       setState(() {
         _position = p;
+        print("dur-$_duration ");
+        print("position-$_position");
+        if (_position >= _duration) {
+          playNext();
+        }
       });
     });
   }
 
+  playNext() {
+    widget.index++;
+    setSong();
+  }
+
+  playPrevious() {
+    widget.index--;
+    setSong();
+  }
+
   playSong() {
+    _isPlaying = false;
     try {
+      print(songModel);
       widget.audioPlayer.setAudioSource(AudioSource.uri(
-        Uri.parse(widget.songModel.uri!),
+        Uri.parse(songModel.uri!),
         tag: MediaItem(
           // Specify a unique ID for each media item:
-          id: "${widget.songModel.id}",
+          id: "${songModel.id}",
           // Metadata to display in the notification:
-          album: "${widget.songModel.album}",
-          title: widget.songModel.displayNameWOExt,
+          album: "${songModel.album}",
+          title: songModel.displayNameWOExt,
           artUri: Uri.parse('https://example.com/albumart.jpg'),
         ),
       ));
@@ -63,6 +91,7 @@ class _NowPlayingState extends State<NowPlaying> {
     return Scaffold(
       body: SafeArea(
           child: Container(
+        color: Colors.cyan,
         width: double.infinity,
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -79,22 +108,27 @@ class _NowPlayingState extends State<NowPlaying> {
             Center(
               child: Column(
                 children: [
-                  CircleAvatar(
+                  const CircleAvatar(
                     //this is not goo because rebuild every time
                     radius: 100.0,
-                    child: QueryArtworkWidget(
-                        id: widget.songModel.id,
-                        type: ArtworkType.AUDIO,
-                        nullArtworkWidget: const Icon(
-                          Icons.music_note,
-                          color: Colors.blue,
-                        )),
+                    // child: QueryArtworkWidget(
+                    //     id: songModel.id,
+                    //     type: ArtworkType.AUDIO,
+                    //     nullArtworkWidget: const Icon(
+                    //       Icons.music_note,
+                    //       color: Colors.blue,
+                    //     )),
+                    child: Icon(
+                      Icons.music_note,
+                      color: Colors.indigo,
+                      size: 180,
+                    ),
                   ),
                   const SizedBox(
                     height: 60,
                   ),
                   Text(
-                    widget.songModel.displayNameWOExt,
+                    songModel.displayNameWOExt,
                     overflow: TextOverflow.fade,
                     maxLines: 1,
                     style:
@@ -104,15 +138,15 @@ class _NowPlayingState extends State<NowPlaying> {
                     height: 10,
                   ),
                   Text(
-                    widget.songModel.artist.toString() == "<unknown>"
+                    songModel.artist.toString() == "<unknown>"
                         ? "<unknown Artist>"
-                        : widget.songModel.artist.toString(),
+                        : songModel.artist.toString(),
                     overflow: TextOverflow.fade,
                     maxLines: 1,
                     style: TextStyle(fontSize: 20),
                   ),
                   const SizedBox(
-                    height: 10,
+                    height: 60,
                   ),
                   Row(
                     children: [
@@ -137,7 +171,9 @@ class _NowPlayingState extends State<NowPlaying> {
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       IconButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            playPrevious();
+                          },
                           icon: Icon(
                             Icons.skip_previous,
                             size: 40,
@@ -158,7 +194,9 @@ class _NowPlayingState extends State<NowPlaying> {
                             size: 40,
                           )),
                       IconButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            playNext();
+                          },
                           icon: Icon(
                             Icons.skip_next,
                             size: 40,
